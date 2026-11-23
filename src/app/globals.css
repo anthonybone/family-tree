@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+:root {
+  --paper: #faf7f2;
+  --card: #fffdf9;
+  --ink: #2b2420;
+  --muted: #8a7d70;
+  --line: #e6ddd1;
+  --accent: #b5573a;
+  --accent-dark: #974529;
+  --edge: #b9a99a;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-dark: var(--accent-dark);
+  --color-edge: var(--edge);
+  --font-sans: var(--font-geist-sans);
+  --font-serif: var(--font-fraunces);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.react-flow {
+  --xy-background-color: var(--paper);
+  --xy-controls-button-background-color: var(--card);
+  --xy-controls-button-border-color: var(--line);
+  --xy-minimap-background-color: var(--card);
+}

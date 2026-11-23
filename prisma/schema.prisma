@@ -1,0 +1,108 @@
+// Single shared family tree (no multi-tenancy yet).
+// Connection URLs live in prisma.config.ts (CLI) and src/lib/db.ts (runtime), never here.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Dates are partial ISO strings ("YYYY", "YYYY-MM" or "YYYY-MM-DD") so that
+/// genealogical dates with unknown month/day can be stored exactly.
+model Person {
+  id         String  @id @default(cuid())
+  firstName  String
+  lastName   String
+  birthDate  String?
+  birthPlace String?
+  deathDate  String?
+  deathPlace String?
+  bio        String?
+
+  photo Photo?
+
+  /// Edges where this person is the parent.
+  childLinks ParentChild[] @relation("ParentLinks")
+  /// Edges where this person is the child. A person may have 0, 1, 2 or more
+  /// rows here: unknown parents are simply absent.
+  parentLinks ParentChild[] @relation("ChildLinks")
+
+  spouseLinksA SpouseRelationship[] @relation("SpouseA")
+  spouseLinksB SpouseRelationship[] @relation("SpouseB")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lastName, firstName])
+}
+
+/// Profile photo metadata. The image itself lives in Vercel Blob, never in Postgres.
+model Photo {
+  id          String   @id @default(cuid())
+  personId    String   @unique
+  person      Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  /// Public Blob URL.
+  url         String
+  /// Blob pathname, needed to delete or replace the object.
+  pathname    String
+  contentType String
+  sizeBytes   Int
+  width       Int?
+  height      Int?
+  uploadedAt  DateTime @default(now())
+}
+
+enum ParentChildKind {
+  BIOLOGICAL
+  ADOPTIVE
+  STEP
+  FOSTER
+  UNKNOWN
+}
+
+/// One row per (parent, child) edge. Half-siblings are not stored: two people are
+/// half-siblings when they share exactly one parent row. Each parent is its own row,
+/// so a child may have one known parent, two, or more.
+model ParentChild {
+  id       String          @id @default(cuid())
+  parentId String
+  childId  String
+  parent   Person          @relation("ParentLinks", fields: [parentId], references: [id], onDelete: Cascade)
+  child    Person          @relation("ChildLinks", fields: [childId], references: [id], onDelete: Cascade)
+  kind     ParentChildKind @default(BIOLOGICAL)
+
+  createdAt DateTime @default(now())
+
+  @@unique([parentId, childId])
+  @@index([childId])
+}
+
+enum SpouseEndReason {
+  DIVORCED
+  WIDOWED
+  ANNULLED
+  SEPARATED
+}
+
+/// An unordered pair stored in canonical order (personAId < personBId, enforced by a
+/// CHECK constraint in the migration) so (A,B) and (B,A) cannot both exist. A person
+/// may appear in many rows, which models multiple marriages.
+model SpouseRelationship {
+  id        String          @id @default(cuid())
+  personAId String
+  personBId String
+  personA   Person          @relation("SpouseA", fields: [personAId], references: [id], onDelete: Cascade)
+  personB   Person          @relation("SpouseB", fields: [personBId], references: [id], onDelete: Cascade)
+  /// Partial ISO date, like Person dates.
+  startDate String?
+  endDate   String?
+  endReason SpouseEndReason?
+
+  createdAt DateTime @default(now())
+
+  @@unique([personAId, personBId])
+  @@index([personBId])
+}

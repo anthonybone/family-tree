@@ -10,6 +10,7 @@ import {
   type FormState,
   type RelationKind,
 } from "@/app/actions";
+import { useToast } from "@/components/Toast";
 
 const field =
   "w-full rounded-xl border border-line bg-paper px-3 py-2 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20";
@@ -76,7 +77,7 @@ export function PersonForm({ id, initial }: { id?: string; initial: PersonFormVa
         <textarea name="bio" rows={5} maxLength={5000} defaultValue={v.bio} className={`mt-1 ${field}`} />
       </label>
       <Errors errors={state.errors} />
-      <div className="flex gap-3">
+      <div className="sticky bottom-0 z-10 -mx-6 flex gap-3 border-t border-line bg-card/95 px-6 py-3 backdrop-blur md:-mx-10 md:px-10">
         <button disabled={pending} className={primaryBtn}>
           {pending ? "Saving…" : id ? "Save changes" : "Add person"}
         </button>
@@ -142,11 +143,18 @@ export function RelationSection({
   candidates: Option[];
   addLabel: string;
 }) {
-  const [state, action, pending] = useActionState(addRelationAction.bind(null, personId, kind), {} as FormState);
   const [removeErrors, setRemoveErrors] = useState<string[]>();
   const [removing, startRemove] = useTransition();
+  const [toast, show] = useToast();
+  const [state, action, pending] = useActionState(async (_: FormState, formData: FormData) => {
+    const result = await addRelationAction(personId, kind, _, formData);
+    if (result.notice) show(result.notice);
+    return result;
+  }, {} as FormState);
+  const noun = title.replace(/s$/, "").toLowerCase();
   return (
     <section className="space-y-3">
+      {toast}
       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">{title}</h3>
       {current.length === 0 ? (
         <p className="text-sm text-muted">None recorded.</p>
@@ -159,7 +167,13 @@ export function RelationSection({
                 type="button"
                 disabled={removing}
                 aria-label={`Remove ${o.label} from ${title.toLowerCase()}`}
-                onClick={() => startRemove(async () => setRemoveErrors((await removeRelationAction(personId, kind, o.id)).errors))}
+                onClick={() =>
+                  startRemove(async () => {
+                    const result = await removeRelationAction(personId, kind, o.id);
+                    setRemoveErrors(result.errors);
+                    if (result.notice) show(result.notice);
+                  })
+                }
                 className="rounded-full px-2 py-0.5 text-muted transition hover:bg-red-50 hover:text-red-700"
               >
                 ✕
@@ -177,8 +191,8 @@ export function RelationSection({
             </option>
           ))}
         </select>
-        <button disabled={pending} className={`${ghostBtn} shrink-0`}>
-          Add
+        <button disabled={pending} className={`${primaryBtn} shrink-0`}>
+          {pending ? "Adding…" : `+ Add ${noun}`}
         </button>
       </form>
       <Errors errors={[...(state.errors ?? []), ...(removeErrors ?? [])]} />

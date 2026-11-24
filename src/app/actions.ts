@@ -14,7 +14,7 @@ import {
 } from "@/lib/mutations";
 import { PERSON_FIELDS, parsePersonInput } from "@/lib/validation";
 
-export type FormState = { errors?: string[]; values?: Record<string, string> };
+export type FormState = { errors?: string[]; values?: Record<string, string>; notice?: string };
 
 const str = (formData: FormData, key: string) => {
   const v = formData.get(key);
@@ -22,11 +22,11 @@ const str = (formData: FormData, key: string) => {
 };
 
 /** Runs a mutation and converts expected failures into form errors. Editing is intentionally open to everyone. */
-async function run(fn: () => Promise<void>): Promise<FormState> {
+async function run(fn: () => Promise<void>, notice?: string): Promise<FormState> {
   try {
     await fn();
     revalidatePath("/", "layout");
-    return {};
+    return { notice };
   } catch (error) {
     if (error instanceof UserError) return { errors: [error.message] };
     console.error("Mutation failed", error);
@@ -45,16 +45,17 @@ export async function savePersonAction(_: FormState, formData: FormData): Promis
     else savedId = await createPerson(parsed.data);
   });
   if (result.errors) return { errors: result.errors.flatMap((e) => e.split("\n")), values: raw };
-  redirect(id ? `/person/${id}` : `/person/${savedId}/edit`);
+  redirect(id ? `/person/${id}?saved=updated` : `/person/${savedId}/edit?saved=created`);
 }
 
 export async function deletePersonAction(id: string): Promise<FormState> {
   const result = await run(() => deletePerson(id));
   if (result.errors) return result;
-  redirect("/");
+  redirect("/?saved=deleted");
 }
 
 export type RelationKind = "parent" | "child" | "spouse";
+const LABEL: Record<RelationKind, string> = { parent: "Parent", child: "Child", spouse: "Spouse" };
 
 export async function addRelationAction(
   personId: string,
@@ -68,7 +69,7 @@ export async function addRelationAction(
     if (kind === "parent") return addParentChild(otherId, personId);
     if (kind === "child") return addParentChild(personId, otherId);
     return addSpouse(personId, otherId);
-  });
+  }, `${LABEL[kind]} added.`);
 }
 
 export async function removeRelationAction(personId: string, kind: RelationKind, otherId: string): Promise<FormState> {
@@ -76,5 +77,5 @@ export async function removeRelationAction(personId: string, kind: RelationKind,
     if (kind === "parent") return removeParentChild(otherId, personId);
     if (kind === "child") return removeParentChild(personId, otherId);
     return removeSpouse(personId, otherId);
-  });
+  }, `${LABEL[kind]} removed.`);
 }

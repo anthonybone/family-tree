@@ -40,24 +40,24 @@ describe("server actions without any authentication", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("creates and updates a person", async () => {
-    await expect(actions.savePersonAction({}, person())).rejects.toThrow("REDIRECT:/person/new-id/edit");
+    await expect(actions.savePersonAction({}, person())).rejects.toThrow("REDIRECT:/person/new-id/edit?saved=created");
     expect(mutations.createPerson).toHaveBeenCalled();
 
     const f = person();
     f.set("id", "p1");
-    await expect(actions.savePersonAction({}, f)).rejects.toThrow("REDIRECT:/person/p1");
+    await expect(actions.savePersonAction({}, f)).rejects.toThrow("REDIRECT:/person/p1?saved=updated");
     expect(mutations.updatePerson).toHaveBeenCalledWith("p1", expect.objectContaining({ firstName: "A" }));
   });
 
   it("deletes a person", async () => {
-    await expect(actions.deletePersonAction("p")).rejects.toThrow("REDIRECT:/");
+    await expect(actions.deletePersonAction("p")).rejects.toThrow("REDIRECT:/?saved=deleted");
     expect(mutations.deletePerson).toHaveBeenCalledWith("p");
   });
 
   it("adds and removes parent, child and spouse relationships", async () => {
     for (const kind of ["parent", "child", "spouse"] as const) {
-      expect(await actions.addRelationAction("p", kind, {}, pick())).toEqual({});
-      expect(await actions.removeRelationAction("p", kind, "o")).toEqual({});
+      expect(await actions.addRelationAction("p", kind, {}, pick())).toEqual({ notice: expect.stringMatching(/added/) });
+      expect(await actions.removeRelationAction("p", kind, "o")).toEqual({ notice: expect.stringMatching(/removed/) });
     }
     expect(mutations.addParentChild).toHaveBeenCalledTimes(2);
     expect(mutations.removeParentChild).toHaveBeenCalledTimes(2);

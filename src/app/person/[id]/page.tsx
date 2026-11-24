@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
+import { SavedToast } from "@/components/Toast";
 import { getFamilyData } from "@/lib/family-data";
 import { fullName, lifespan } from "@/lib/person-utils";
 import { buildRelations } from "@/lib/relations";
 
 export const dynamic = "force-dynamic";
 
-export default async function PersonPage({ params }: PageProps<"/person/[id]">) {
+export default async function PersonPage({ params, searchParams }: PageProps<"/person/[id]">) {
   const { id } = await params;
+  const { saved } = await searchParams;
   const data = await getFamilyData();
   const person = data.people.find((p) => p.id === id);
   if (!person) notFound();
@@ -24,6 +26,7 @@ export default async function PersonPage({ params }: PageProps<"/person/[id]">) 
 
   return (
     <main className="mx-auto max-w-2xl px-5 py-10">
+      <SavedToast code={typeof saved === "string" ? saved : undefined} />
       <Link href={`/#${person.id}`} className="text-sm text-accent hover:text-accent-dark">
         ← Back to the family tree
       </Link>

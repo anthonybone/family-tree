@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { logoutAction } from "@/app/actions";
 import {
   Background,
   BackgroundVariant,
@@ -35,7 +37,7 @@ function setHash(id: string | null) {
   window.history.replaceState(window.history.state, "", url);
 }
 
-function TreeCanvas({ data }: { data: FamilyData }) {
+function TreeCanvas({ data, isAdmin }: { data: FamilyData; isAdmin: boolean }) {
   const { setCenter, fitView, getViewport } = useReactFlow();
   const wrapRef = useRef<HTMLDivElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -254,7 +256,7 @@ function TreeCanvas({ data }: { data: FamilyData }) {
       <header className="z-30 flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-line bg-card/90 px-4 py-3 backdrop-blur md:px-8">
         <div>
           <h1 className="font-serif text-2xl font-semibold tracking-tight text-ink">The Whitlock Family</h1>
-          <p className="text-xs text-muted">{data.people.length} people · sample data</p>
+          <p className="text-xs text-muted">{data.people.length} people</p>
         </div>
         <div className="relative ml-auto w-full max-w-sm sm:w-80">
           <input
@@ -290,6 +292,25 @@ function TreeCanvas({ data }: { data: FamilyData }) {
             </ul>
           )}
         </div>
+        <nav aria-label="Administration" className="flex items-center gap-2 text-sm">
+          {isAdmin ? (
+            <>
+              <Link
+                href="/person/new"
+                className="rounded-full bg-accent px-4 py-2 font-medium text-white transition hover:bg-accent-dark"
+              >
+                + Add person
+              </Link>
+              <form action={logoutAction}>
+                <button className="rounded-full px-3 py-2 text-muted transition hover:text-ink">Sign out</button>
+              </form>
+            </>
+          ) : (
+            <Link href="/login" className="rounded-full px-3 py-2 text-muted transition hover:text-ink">
+              Admin
+            </Link>
+          )}
+        </nav>
       </header>
 
       <div
@@ -365,6 +386,7 @@ function TreeCanvas({ data }: { data: FamilyData }) {
             peopleById={peopleById}
             onSelect={focus}
             onClose={clearSelection}
+            isAdmin={isAdmin}
           />
         )}
       </div>
@@ -372,10 +394,10 @@ function TreeCanvas({ data }: { data: FamilyData }) {
   );
 }
 
-export function FamilyTreeApp({ data }: { data: FamilyData }) {
+export function FamilyTreeApp({ data, isAdmin }: { data: FamilyData; isAdmin: boolean }) {
   return (
     <ReactFlowProvider>
-      <TreeCanvas data={data} />
+      <TreeCanvas data={data} isAdmin={isAdmin} />
     </ReactFlowProvider>
   );
 }

@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { UnauthorizedError, requireAdmin, signIn, signOut } from "@/lib/auth";
 import {
   UserError,
   addParentChild,
@@ -22,29 +21,17 @@ const str = (formData: FormData, key: string) => {
   return typeof v === "string" ? v : "";
 };
 
-/** Runs an admin-only mutation and converts expected failures into form errors. */
+/** Runs a mutation and converts expected failures into form errors. Editing is intentionally open to everyone. */
 async function run(fn: () => Promise<void>): Promise<FormState> {
   try {
-    await requireAdmin();
     await fn();
     revalidatePath("/", "layout");
     return {};
   } catch (error) {
-    if (error instanceof UnauthorizedError || error instanceof UserError) return { errors: [error.message] };
+    if (error instanceof UserError) return { errors: [error.message] };
     console.error("Mutation failed", error);
     return { errors: ["Something went wrong while saving. Please try again."] };
   }
-}
-
-export async function loginAction(_: FormState, formData: FormData): Promise<FormState> {
-  const error = await signIn(str(formData, "password"));
-  if (error) return { errors: [error] };
-  redirect("/");
-}
-
-export async function logoutAction() {
-  await signOut();
-  redirect("/");
 }
 
 export async function savePersonAction(_: FormState, formData: FormData): Promise<FormState> {

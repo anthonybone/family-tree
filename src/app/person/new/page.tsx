@@ -1,13 +1,10 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { PersonForm } from "@/components/EditForms";
-import { isAdmin } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Add a person · Family Tree" };
 
-export default async function NewPersonPage() {
-  if (!(await isAdmin())) redirect("/login");
+export default function NewPersonPage() {
   return (
     <main className="mx-auto max-w-2xl px-5 py-10">
       <Link href="/" className="text-sm text-accent hover:text-accent-dark">

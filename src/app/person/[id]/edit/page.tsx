@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { DeletePerson, PersonForm, RelationSection, type Option } from "@/components/EditForms";
-import { isAdmin } from "@/lib/auth";
 import { wouldCreateCycle } from "@/lib/db-mapping";
 import { getFamilyData } from "@/lib/family-data";
 import { fullName, lifespan } from "@/lib/person-utils";
@@ -11,8 +10,6 @@ export const dynamic = "force-dynamic";
 
 export default async function EditPersonPage({ params }: PageProps<"/person/[id]/edit">) {
   const { id } = await params;
-  if (!(await isAdmin())) redirect("/login");
-
   const data = await getFamilyData();
   const person = data.people.find((p) => p.id === id);
   if (!person) notFound();

@@ -5,7 +5,6 @@ import { useActionState, useState, useTransition } from "react";
 import {
   addRelationAction,
   deletePersonAction,
-  loginAction,
   removeRelationAction,
   savePersonAction,
   type FormState,
@@ -27,22 +26,6 @@ function Errors({ errors }: { errors?: string[] }) {
         <li key={e}>{e}</li>
       ))}
     </ul>
-  );
-}
-
-export function LoginForm() {
-  const [state, action, pending] = useActionState(loginAction, {} as FormState);
-  return (
-    <form action={action} className="space-y-4">
-      <label className="block text-sm text-ink">
-        Administrator password
-        <input name="password" type="password" required autoComplete="current-password" autoFocus className={`mt-1 ${field}`} />
-      </label>
-      <Errors errors={state.errors} />
-      <button disabled={pending} className={primaryBtn}>
-        {pending ? "Signing in…" : "Sign in"}
-      </button>
-    </form>
   );
 }
 

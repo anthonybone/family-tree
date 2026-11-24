@@ -2,14 +2,12 @@
 
 Family tree web app built with Next.js (App Router), TypeScript, Tailwind CSS and React Flow. Amazing
 
-**Status:** data is stored in PostgreSQL (Neon) through Prisma. Anyone can view the tree; one administrator password unlocks adding, editing and deleting people and relationships. Photo uploads are not implemented yet.
+**Status:** data is stored in PostgreSQL (Neon) through Prisma. There is no login: anyone with the URL can view, add, edit and delete people and relationships. Photo uploads are not implemented yet.
 
 ## Setup
 
 1. Copy `.env.example` to `.env.local` and set `DATABASE_URL` (pooled) and `DIRECT_URL` (direct).
-2. `npm run admin:hash -- "your password"` and put the output in `ADMIN_PASSWORD_HASH`. Set `SESSION_SECRET` to a random string of 32+ characters.
-3. `npx prisma migrate deploy`, then `npm run db:seed` (the 56 fictional sample people; `-- --reset` wipes first).
-4. Sign in at `/login`.
+2. `npx prisma migrate deploy`. Optionally `npm run db:seed` loads 56 fictional sample people into an empty database (`-- --reset` wipes first).
 
 ## Development
 

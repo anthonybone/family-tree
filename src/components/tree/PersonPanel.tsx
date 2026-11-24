@@ -12,7 +12,6 @@ interface Props {
   peopleById: Map<string, Person>;
   onSelect: (id: string) => void;
   onClose: () => void;
-  isAdmin: boolean;
 }
 
 function Group({
@@ -50,7 +49,7 @@ function Group({
   );
 }
 
-export function PersonPanel({ person, relations, peopleById, onSelect, onClose, isAdmin }: Props) {
+export function PersonPanel({ person, relations, peopleById, onSelect, onClose }: Props) {
   return (
     <aside
       aria-label={`Details for ${fullName(person)}`}
@@ -88,14 +87,12 @@ export function PersonPanel({ person, relations, peopleById, onSelect, onClose, 
       >
         View full profile
       </Link>
-      {isAdmin && (
-        <Link
-          href={`/person/${person.id}/edit`}
-          className="mt-2 inline-flex w-full items-center justify-center rounded-full border border-accent px-4 py-2.5 text-sm font-medium text-accent transition hover:bg-accent hover:text-white"
-        >
-          Edit person
-        </Link>
-      )}
+      <Link
+        href={`/person/${person.id}/edit`}
+        className="mt-2 inline-flex w-full items-center justify-center rounded-full border border-accent px-4 py-2.5 text-sm font-medium text-accent transition hover:bg-accent hover:text-white"
+      >
+        Edit person
+      </Link>
     </aside>
   );
 }

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
-import { isAdmin } from "@/lib/auth";
 import { getFamilyData } from "@/lib/family-data";
 import { fullName, lifespan } from "@/lib/person-utils";
 import { buildRelations } from "@/lib/relations";
@@ -10,7 +9,6 @@ export const dynamic = "force-dynamic";
 
 export default async function PersonPage({ params }: PageProps<"/person/[id]">) {
   const { id } = await params;
-  const admin = await isAdmin();
   const data = await getFamilyData();
   const person = data.people.find((p) => p.id === id);
   if (!person) notFound();
@@ -29,14 +27,12 @@ export default async function PersonPage({ params }: PageProps<"/person/[id]">) 
       <Link href={`/#${person.id}`} className="text-sm text-accent hover:text-accent-dark">
         ← Back to the family tree
       </Link>
-      {admin && (
-        <Link
-          href={`/person/${person.id}/edit`}
-          className="float-right rounded-full border border-accent px-4 py-1.5 text-sm font-medium text-accent transition hover:bg-accent hover:text-white"
-        >
-          Edit person
-        </Link>
-      )}
+      <Link
+        href={`/person/${person.id}/edit`}
+        className="float-right rounded-full border border-accent px-4 py-1.5 text-sm font-medium text-accent transition hover:bg-accent hover:text-white"
+      >
+        Edit person
+      </Link>
       <article className="mt-6 rounded-3xl border border-line bg-card p-6 shadow-sm md:p-10">
         <div className="flex items-center gap-5">
           <Avatar person={person} size={96} />

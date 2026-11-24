@@ -1,6 +1,6 @@
 # family-tree
 
-Family tree web app built with Next.js (App Router), TypeScript, Tailwind CSS and React Flow.
+Family tree web app built with Next.js (App Router), TypeScript, Tailwind CSS and React Flow. Amazing
 
 **Status:** data is stored in PostgreSQL (Neon) through Prisma. Anyone can view the tree; one administrator password unlocks adding, editing and deleting people and relationships. Photo uploads are not implemented yet.
 
